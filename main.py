@@ -4,6 +4,7 @@ matplotlib.use("Agg")  # Use non-GUI backend
 import matplotlib.pyplot as plt
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
 import pickle
@@ -11,36 +12,32 @@ import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 import uuid
-import matplotlib.pyplot as plt
 import io
 from PIL import Image
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
+# ---------------------------
+# Load the extended model
+with open("lca_model_extended.pkl", "rb") as f:
+    model = pickle.load(f)
 
+# ---------------------------
+# FastAPI instance
+app = FastAPI(title="AI-powered LCA Extended API with Reports")
 
-# Allow Lovable sandbox (or all origins for testing)
+# ---------------------------
+# Configure CORS for Lovable sandbox
 origins = [
-    "https://*.lovable.dev",
-    "https://7237e7c1-9bf7-4653-9872-fcb727629b6b.sandbox.lovable.dev"
+    "https://*.lovable.dev",  # allows all lovable.dev subdomains
 ]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 🔥 use specific domains in production
+    allow_origins=["*"],  # 🔥 for testing; replace with origins list in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# Load the extended model
-with open("lca_model_extended.pkl", "rb") as f:
-    model = pickle.load(f)
-
-# FastAPI instance
-app = FastAPI(title="AI-powered LCA Extended API with Reports")
-
+# ---------------------------
 # Input schema for extended model
 class LCAInput(BaseModel):
     material: str
@@ -53,11 +50,13 @@ class LCAInput(BaseModel):
     process_stage2_energy: float = 0
     process_stage3_energy: float = 0
 
+# ---------------------------
 # Home route
 @app.get("/")
 def home():
     return {"message": "Welcome to the AI-powered Extended LCA Prototype API with Reports!"}
 
+# ---------------------------
 # Predict endpoint
 @app.post("/predict")
 def predict(data: LCAInput):
@@ -78,6 +77,7 @@ def predict(data: LCAInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ---------------------------
 # Report generation endpoint
 @app.post("/report")
 def generate_report(data: LCAInput):
