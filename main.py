@@ -14,6 +14,25 @@ import uuid
 import matplotlib.pyplot as plt
 import io
 from PIL import Image
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+
+
+# Allow Lovable sandbox (or all origins for testing)
+origins = [
+    "https://*.lovable.dev",
+    "https://7237e7c1-9bf7-4653-9872-fcb727629b6b.sandbox.lovable.dev"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 🔥 use specific domains in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Load the extended model
 with open("lca_model_extended.pkl", "rb") as f:
